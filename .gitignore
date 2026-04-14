@@ -3,4 +3,8 @@
 /build/
 /__pycache__/
 /ProxiOCR_venv/
+/uploads/*
 *.bak
+pyvenv.cfg
+/lib/
+/bin/
