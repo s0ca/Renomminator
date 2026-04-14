@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="results-page">
+        <div class="results-header">
+            <h1>Résultats des fichiers renommés</h1>
+            <div class="results-summary">
+                <div class="summary-card summary-card-success">
+                    <span class="summary-label">Renommés</span>
+                    <span class="summary-value">{{ renamed_count }}</span>
+                </div>
+                <div class="summary-card summary-card-total">
+                    <span class="summary-label">Total</span>
+                    <span class="summary-value">{{ total_files }}</span>
+                </div>
+                <div class="summary-card summary-card-warning">
+                    <span class="summary-label">À corriger</span>
+                    <span class="summary-value">{{ unrenamed_count }}</span>
+                </div>
+            </div>
+            <p class="results-subtitle">
+                {{ renamed_count }} document{{ 's' if renamed_count != 1 else '' }} renommé{{ 's' if renamed_count != 1 else '' }}
+                automatiquement sur {{ total_files }}.
+                {% if unrenamed_count %}
+                    Vérifie les {{ unrenamed_count }} fichier{{ 's' if unrenamed_count != 1 else '' }} restants avant de générer le ZIP.
+                {% else %}
+                    Tout est prêt pour générer le ZIP.
+                {% endif %}
+            </p>
+        </div>
+
+    <form method="post" action="{{ url_for('handle_manual_rename') }}" class="results-form">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ancien nom</th>
+                    <th>Nouveau nom (si incorrect, à corriger)</th>
+                    <th>Preview</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Fichiers mal renommés ou non renommés -->
+                {% for original, new_name in files %}
+                <tr>
+                    <td>{{ original }}</td>
+                    <td>
+                        <input type="text" name="{{ original }}" value="{{ new_name or '' }}" required>
+                    </td>
+                    <td>
+                        {% if new_name %}
+                            <img src="{{ url_for('serve_processed_file', filename=new_name) }}" data-filename="{{ new_name }}" alt="Preview" style="max-width: 100px;" onclick="openModal(this)">
+                        {% else %}
+                            <img src="{{ url_for('serve_unrenamed_file', filename=original) }}" data-filename="{{ original }}" alt="Preview" style="max-width: 100px;" onclick="openModal(this)">
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="submit-btn">Valider et générer le ZIP</button>
+    </form>
+    </div>
+
+    <!-- Modale pour afficher l'image en zoom avec navigation -->
+    <div id="myModal" class="modal" onclick="closeModal(event)">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-filename" id="modalFilename"></div>
+        <img class="modal-content" id="imgZoomed">
+        <span class="arrow left-arrow" onclick="navigateModal(-1)">&#10094;</span>
+        <span class="arrow right-arrow" onclick="navigateModal(1)">&#10095;</span>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let images = [];  // Tableau des images
+        let modalOpen = false;  // Indique si la modale est ouverte
+
+        // Ouvrir la modale
+        function getDisplayFilename(imgElement) {
+            const row = imgElement.closest('tr');
+            const input = row ? row.querySelector('input[type="text"]') : null;
+            const currentValue = input ? input.value.trim() : '';
+
+            return currentValue || imgElement.getAttribute('data-filename') || '';
+        }
+
+        function openModal(imgElement) {
+            images = document.querySelectorAll('tbody img');  // Obtenir toutes les images cliquables
+            currentIndex = Array.from(images).findIndex(img => img === imgElement);
+            updateModal(imgElement.src, getDisplayFilename(imgElement));
+            modalOpen = true;  // Marquer que la modale est ouverte
+        }
+
+        // Mettre à jour la modale avec l'image et le nom du fichier
+        function updateModal(imageUrl, filename) {
+            var modal = document.getElementById("myModal");
+            var imgZoomed = document.getElementById("imgZoomed");
+            var modalFilename = document.getElementById("modalFilename");
+
+            modal.style.display = "flex";
+            imgZoomed.src = imageUrl;
+            modalFilename.textContent = filename;
+        }
+
+        // Fermer la modale
+        function closeModal(event) {
+            var modal = document.getElementById("myModal");
+
+            if (event.target === modal || event.target.className === 'close') {
+                modal.style.display = "none";
+                modalOpen = false;  // Marquer que la modale est fermée
+            }
+        }
+
+        // Naviguer dans la modale avec les flèches
+        function navigateModal(direction) {
+            if (!modalOpen) return;  // Ne pas naviguer si la modale est fermée
+
+            currentIndex += direction;
+
+            // Boucle au début ou à la fin
+            if (currentIndex < 0) {
+                currentIndex = images.length - 1;
+            } else if (currentIndex >= images.length) {
+                currentIndex = 0;
+            }
+
+            var imgElement = images[currentIndex];
+            var imageUrl = imgElement.src;
+            updateModal(imageUrl, getDisplayFilename(imgElement));
+        }
+
+        // Naviguer avec les touches du clavier (gauche et droite)
+        document.addEventListener('keydown', function (event) {
+            if (!modalOpen) return;  // Ne pas capturer les touches si la modale est fermée
+
+            if (event.key === "ArrowLeft") {
+                navigateModal(-1);
+            } else if (event.key === "ArrowRight") {
+                navigateModal(1);
+            }
+        });
+    </script>
+
+</body>
+</html>

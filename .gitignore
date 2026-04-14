@@ -1,0 +1,6 @@
+/.DS_Store
+/dist/
+/build/
+/__pycache__/
+/ProxiOCR_venv/
+*.bak
