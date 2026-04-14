@@ -8,29 +8,28 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Texte placé au-dessus du monstre -->
-    <h2 class="renomminator-text">Donne un .zip à Renomminator</h2>
-    <div class="monster-container">
-        <!-- Yeux du monstre -->
-        <div class="eye left-eye"></div>
-        <div class="eye right-eye"></div>
+    <div class="upload-page">
+        <div class="upload-card">
+            <div class="upload-header">
+                <div class="brand-mark">R</div>
+                <div>
+                    <h1>Renomminator</h1>
+                    <p class="upload-description">Envoyez votre archive ZIP et laissez Renomminator organiser vos fichiers proprement.</p>
+                </div>
+            </div>
 
-        <!-- Bouche du monstre (où le formulaire sera placé) -->
-        <div class="mouth">
-            <form method="post" action="/" enctype="multipart/form-data">
-                <input type="file" name="file" id="file-input" required>
-                <button type="submit">Miam</button>
+            <form class="upload-form" method="post" action="/" enctype="multipart/form-data">
+                <label class="file-input-wrapper" for="file-input">
+                    <input type="file" name="file" id="file-input" accept=".zip" required>
+                    <span>Choisir un fichier ZIP</span>
+                </label>
+                <button class="upload-button" type="submit">Envoyer maintenant</button>
             </form>
-        </div>
 
-        <!-- Dents du monstre -->
-        <div class="teeth">
-            <div class="tooth"></div>
-            <div class="tooth"></div>
-            <div class="tooth"></div>
-            <div class="tooth"></div>
-            <div class="tooth"></div>
-            <div class="tooth"></div>
+            <div class="upload-note">
+                <p>Format accepté : <strong>.zip</strong></p>
+                <p>Votre archive sera renommée et préparée pour un traitement propre.</p>
+            </div>
         </div>
     </div>
 </body>

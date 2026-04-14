@@ -124,6 +124,119 @@ form {
     margin-bottom: 20px;
 }
 
+.upload-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    background: linear-gradient(180deg, #edf4fb 0%, #dbeaf6 45%, #e9eff5 100%);
+}
+
+.upload-card {
+    width: min(560px, 100%);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 28px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 70px rgba(35, 78, 118, 0.12);
+    border: 1px solid rgba(125, 168, 210, 0.2);
+}
+
+.upload-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.brand-mark {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #4a90e2, #2f78d0);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    box-shadow: 0 14px 32px rgba(74, 144, 226, 0.24);
+}
+
+.upload-header h1 {
+    margin: 0;
+    font-size: 2.05rem;
+    letter-spacing: -0.02em;
+    color: #1e364f;
+}
+
+.upload-description {
+    margin: 6px 0 0;
+    color: #4f6276;
+    line-height: 1.6;
+    max-width: 460px;
+}
+
+.upload-form {
+    display: grid;
+    gap: 18px;
+}
+
+.file-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 2px dashed rgba(74, 144, 226, 0.35);
+    border-radius: 18px;
+    padding: 24px;
+    background: rgba(74, 144, 226, 0.06);
+    cursor: pointer;
+    transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.file-input-wrapper:hover {
+    border-color: rgba(74, 144, 226, 0.65);
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.file-input-wrapper span {
+    font-size: 1rem;
+    color: #1e364f;
+    font-weight: 500;
+}
+
+.file-input-wrapper input[type="file"] {
+    display: none;
+}
+
+.upload-button {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #4a90e2, #357ab7);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.upload-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 30px rgba(53, 122, 183, 0.24);
+}
+
+.upload-note {
+    margin-top: 16px;
+    color: #5b6b7d;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+.upload-note p {
+    margin: 6px 0;
+}
+
 .results-form {
     background: rgba(255, 255, 255, 0.88);
     border-radius: 18px;
