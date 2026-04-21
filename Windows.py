@@ -11,12 +11,49 @@ from PIL import Image, ImageOps, ImageEnhance
 import pytesseract
 from io import BytesIO
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def get_base_path():
     if getattr(sys, 'frozen', False):  # Si l'application est compilée avec PyInstaller
         return sys._MEIPASS  # Dossier temporaire utilisé par PyInstaller
     return os.path.dirname(os.path.abspath(__file__))  # Dossier du script
+
+
+def find_tesseract_cmd():
+    base_path = get_base_path()
+    possible_paths = []
+
+    if getattr(sys, 'frozen', False):
+        possible_paths.append(os.path.join(base_path, 'Tesseract-OCR', 'tesseract.exe'))
+
+    possible_paths.extend([
+        r'C:\Program Files\Tesseract-OCR\tesseract.exe',
+        r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
+    ])
+
+    for path in possible_paths:
+        if path and os.path.exists(path):
+            return os.path.normpath(path)
+
+    return None
+
+
+def configure_tesseract():
+    tesseract_cmd = find_tesseract_cmd()
+    if tesseract_cmd:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+        tesseract_dir = os.path.dirname(tesseract_cmd)
+        tessdata_dir = os.path.join(tesseract_dir, 'tessdata')
+
+        if os.path.isdir(tessdata_dir):
+            os.environ['TESSDATA_PREFIX'] = tessdata_dir
+
+        os.environ['PATH'] = os.pathsep.join([tesseract_dir, os.environ.get('PATH', '')])
+        print(f"Tesseract trouvé : {tesseract_cmd}")
+    else:
+        print("Attention : Tesseract non trouvé. Installez Tesseract sur Windows ou ajoutez-le au PATH.")
+
+
+configure_tesseract()
 
 app = Flask(__name__)
 

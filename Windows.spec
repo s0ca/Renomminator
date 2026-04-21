@@ -4,13 +4,14 @@
 a = Analysis(
     ['Windows.py'],
     pathex=[],
-    binaries=[('C:/Program Files/Tesseract-OCR/tesseract.exe', 'Tesseract-OCR')],
+    binaries=[],
     datas=[
+        (r'C:\Program Files\Tesseract-OCR', 'Tesseract-OCR'),
+        ('templates', 'templates'),
+        ('static', 'static'),
         ('uploads', 'uploads'),
-        ('processed', 'processed'), 
+        ('processed', 'processed'),
         ('unrenamed', 'unrenamed'),
-        ('templates/*.html', 'templates'),  # Inclure les templates
-        ('static/css/*', 'static/css')     # Inclure les fichiers CSS
     ],
     hiddenimports=[],
     hookspath=[],
