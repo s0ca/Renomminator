@@ -42,6 +42,7 @@
                 <tr>
                     <th>Ancien nom</th>
                     <th>Nouveau nom (si incorrect, à corriger)</th>
+                    <th>Rotation</th>
                     <th>Preview</th>
                 </tr>
             </thead>
@@ -52,12 +53,20 @@
                     <td>{{ original }}</td>
                     <td>
                         <input type="text" name="{{ original }}" value="{{ new_name or '' }}" required>
+                        <input type="hidden" name="__rotation__{{ original }}" value="0" class="rotation-input">
+                    </td>
+                    <td>
+                        <div class="rotation-controls" aria-label="Rotation de {{ original }}">
+                            <button type="button" class="rotation-btn" onclick="rotateImage(this, -90)" title="Pivoter à gauche">↶</button>
+                            <span class="rotation-value">0°</span>
+                            <button type="button" class="rotation-btn" onclick="rotateImage(this, 90)" title="Pivoter à droite">↷</button>
+                        </div>
                     </td>
                     <td>
                         {% if new_name %}
-                            <img src="{{ url_for('serve_processed_file', filename=new_name) }}" data-filename="{{ new_name }}" alt="Preview" style="max-width: 100px;" onclick="openModal(this)">
+                            <img class="preview-image" src="{{ url_for('serve_processed_file', filename=new_name) }}" data-filename="{{ new_name }}" alt="Preview" onclick="openModal(this)">
                         {% else %}
-                            <img src="{{ url_for('serve_unrenamed_file', filename=original) }}" data-filename="{{ original }}" alt="Preview" style="max-width: 100px;" onclick="openModal(this)">
+                            <img class="preview-image" src="{{ url_for('serve_unrenamed_file', filename=original) }}" data-filename="{{ original }}" alt="Preview" onclick="openModal(this)">
                         {% endif %}
                     </td>
                 </tr>
@@ -72,8 +81,19 @@
     <!-- Modale pour afficher l'image en zoom avec navigation -->
     <div id="myModal" class="modal" onclick="closeModal(event)">
         <span class="close" onclick="closeModal()">&times;</span>
-        <div class="modal-filename" id="modalFilename"></div>
-        <img class="modal-content" id="imgZoomed">
+        <div class="modal-panel">
+            <div class="modal-filename-editor">
+                <label for="modalFilenameInput">Nom du fichier</label>
+                <input type="text" id="modalFilenameInput" class="modal-filename-input" oninput="updateCurrentFilename(this.value)">
+            </div>
+            <div class="modal-image-frame">
+                <img class="modal-content" id="imgZoomed">
+            </div>
+            <div class="modal-rotation-controls">
+                <button type="button" class="rotation-btn" onclick="rotateCurrentImage(-90)" title="Pivoter à gauche">↶</button>
+                <button type="button" class="rotation-btn" onclick="rotateCurrentImage(90)" title="Pivoter à droite">↷</button>
+            </div>
+        </div>
         <span class="arrow left-arrow" onclick="navigateModal(-1)">&#10094;</span>
         <span class="arrow right-arrow" onclick="navigateModal(1)">&#10095;</span>
     </div>
@@ -84,37 +104,125 @@
         let modalOpen = false;  // Indique si la modale est ouverte
 
         // Ouvrir la modale
+        function getRowNameInput(row) {
+            return row ? row.querySelector('input[type="text"]') : null;
+        }
+
         function getDisplayFilename(imgElement) {
             const row = imgElement.closest('tr');
-            const input = row ? row.querySelector('input[type="text"]') : null;
+            const input = getRowNameInput(row);
             const currentValue = input ? input.value.trim() : '';
 
             return currentValue || imgElement.getAttribute('data-filename') || '';
         }
 
+        function getRowRotation(row) {
+            const input = row ? row.querySelector('.rotation-input') : null;
+            return input ? Number(input.value || 0) : 0;
+        }
+
+        function setRowRotation(row, degrees) {
+            if (!row) return;
+
+            const normalizedDegrees = ((degrees % 360) + 360) % 360;
+            const rotationInput = row.querySelector('.rotation-input');
+            const rotationValue = row.querySelector('.rotation-value');
+            const previewImage = row.querySelector('.preview-image');
+
+            if (rotationInput) {
+                rotationInput.value = normalizedDegrees;
+            }
+            if (rotationValue) {
+                rotationValue.textContent = normalizedDegrees + '°';
+            }
+            if (previewImage) {
+                previewImage.style.setProperty('--rotation-deg', normalizedDegrees + 'deg');
+            }
+
+            if (modalOpen && images[currentIndex] === previewImage) {
+                document.getElementById("imgZoomed").style.setProperty('--rotation-deg', normalizedDegrees + 'deg');
+                fitModalImage();
+            }
+        }
+
+        function rotateImage(button, deltaDegrees) {
+            const row = button.closest('tr');
+            setRowRotation(row, getRowRotation(row) + deltaDegrees);
+        }
+
+        function rotateCurrentImage(deltaDegrees) {
+            if (!modalOpen) return;
+
+            const imgElement = images[currentIndex];
+            const row = imgElement ? imgElement.closest('tr') : null;
+            setRowRotation(row, getRowRotation(row) + deltaDegrees);
+        }
+
+        function updateCurrentFilename(filename) {
+            if (!modalOpen) return;
+
+            const imgElement = images[currentIndex];
+            const row = imgElement ? imgElement.closest('tr') : null;
+            const input = getRowNameInput(row);
+
+            if (input) {
+                input.value = filename;
+            }
+        }
+
         function openModal(imgElement) {
             images = document.querySelectorAll('tbody img');  // Obtenir toutes les images cliquables
             currentIndex = Array.from(images).findIndex(img => img === imgElement);
-            updateModal(imgElement.src, getDisplayFilename(imgElement));
+            updateModal(imgElement.src, getDisplayFilename(imgElement), getRowRotation(imgElement.closest('tr')));
             modalOpen = true;  // Marquer que la modale est ouverte
         }
 
         // Mettre à jour la modale avec l'image et le nom du fichier
-        function updateModal(imageUrl, filename) {
+        function updateModal(imageUrl, filename, degrees) {
             var modal = document.getElementById("myModal");
             var imgZoomed = document.getElementById("imgZoomed");
-            var modalFilename = document.getElementById("modalFilename");
+            var modalFilenameInput = document.getElementById("modalFilenameInput");
 
             modal.style.display = "flex";
+            imgZoomed.onload = fitModalImage;
             imgZoomed.src = imageUrl;
-            modalFilename.textContent = filename;
+            imgZoomed.style.setProperty('--rotation-deg', (degrees || 0) + 'deg');
+            modalFilenameInput.value = filename;
+
+            if (imgZoomed.complete) {
+                fitModalImage();
+            }
+        }
+
+        function fitModalImage() {
+            if (!modalOpen) return;
+
+            const imgZoomed = document.getElementById("imgZoomed");
+            const frame = imgZoomed.closest('.modal-image-frame');
+            const imgElement = images[currentIndex];
+            const row = imgElement ? imgElement.closest('tr') : null;
+            const degrees = getRowRotation(row);
+
+            if (!frame || !imgZoomed.naturalWidth || !imgZoomed.naturalHeight) return;
+
+            const frameWidth = frame.clientWidth;
+            const frameHeight = frame.clientHeight;
+            const naturalWidth = imgZoomed.naturalWidth;
+            const naturalHeight = imgZoomed.naturalHeight;
+            const isQuarterTurn = degrees % 180 !== 0;
+            const visualWidth = isQuarterTurn ? naturalHeight : naturalWidth;
+            const visualHeight = isQuarterTurn ? naturalWidth : naturalHeight;
+            const scale = Math.min(frameWidth / visualWidth, frameHeight / visualHeight, 1);
+
+            imgZoomed.style.width = (naturalWidth * scale) + 'px';
+            imgZoomed.style.height = (naturalHeight * scale) + 'px';
         }
 
         // Fermer la modale
         function closeModal(event) {
             var modal = document.getElementById("myModal");
 
-            if (event.target === modal || event.target.className === 'close') {
+            if (!event || event.target === modal || event.target.className === 'close') {
                 modal.style.display = "none";
                 modalOpen = false;  // Marquer que la modale est fermée
             }
@@ -135,12 +243,13 @@
 
             var imgElement = images[currentIndex];
             var imageUrl = imgElement.src;
-            updateModal(imageUrl, getDisplayFilename(imgElement));
+            updateModal(imageUrl, getDisplayFilename(imgElement), getRowRotation(imgElement.closest('tr')));
         }
 
         // Naviguer avec les touches du clavier (gauche et droite)
         document.addEventListener('keydown', function (event) {
             if (!modalOpen) return;  // Ne pas capturer les touches si la modale est fermée
+            if (event.target && event.target.id === "modalFilenameInput") return;
 
             if (event.key === "ArrowLeft") {
                 navigateModal(-1);
@@ -148,6 +257,8 @@
                 navigateModal(1);
             }
         });
+
+        window.addEventListener('resize', fitModalImage);
     </script>
 
 </body>
