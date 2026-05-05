@@ -8,7 +8,6 @@
 pyvenv.cfg
 /lib/
 /bin/
-build_windows.bat
 check_icon.py
 make_icon.py
 temp_check.py
