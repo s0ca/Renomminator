@@ -48,7 +48,7 @@ for package in (
 
 
 a = Analysis(
-    ["app.py"],
+    ['app.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -60,47 +60,32 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-
 pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
-    name=app_name,
+    name='Nomminator',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['Nomminator.icns'],
 )
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name=app_name,
-)
-
 app = BUNDLE(
-    coll,
-    name=f"{app_name}.app",
-    icon="Nomminator.icns",
-    bundle_identifier="com.nomminator.app",
-    info_plist={
-        "CFBundleName": app_name,
-        "CFBundleDisplayName": app_name,
-        "CFBundleShortVersionString": "1.0.0",
-        "CFBundleVersion": "1.0.0",
-        "NSHighResolutionCapable": True,
-    },
+    exe,
+    name='Nomminator.app',
+    icon='Nomminator.icns',
+    bundle_identifier=None,
 )
