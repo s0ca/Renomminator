@@ -2,6 +2,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+echo "Killing any running Nomminator processes..."
+pkill -f Nomminator 2>/dev/null || true
+
 echo "Cleaning previous build artifacts..."
 rm -rf build dist
 
